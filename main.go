@@ -22,7 +22,7 @@ func (file fileParam) Sting() string {
 }
 
 var exts = []extension{
-	"ed.Backup", "bmd", "CFR", "cod",
+	"bmd", "CFR", "cod",
 	"cut", "day", "dbi",
 	"dbs", "dgn", "dsp",
 	"slg", "ecf", "ejt",
@@ -35,8 +35,15 @@ var exts = []extension{
 	"u06", "u07", "u08",
 	"UID", "REI_Saved_Picture",
 	"err", "bsh", "cfc",
-	"ben",
+	"ben", "MMTX",
 }
+
+// *_MASS.TXT
+// *ed.Backup
+// General*.msh
+// Preliminary*.msh
+// General*.log
+// Preliminary*.log
 
 func main() {
 
