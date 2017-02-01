@@ -35,7 +35,9 @@ var exts = []extension{
 	"u06", "u07", "u08",
 	"UID", "REI_Saved_Picture",
 	"err", "bsh", "cfc",
-	"ben", "MMTX",
+	"ben", "MMTX", "dsn",
+	"jst", "REI_STEELDESIGNER_DATA",
+	"str",
 }
 
 // *_MASS.TXT
