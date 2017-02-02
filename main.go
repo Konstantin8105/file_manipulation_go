@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 )
 
 type folder string
@@ -40,8 +39,10 @@ var exts = []extension{
 	"str",
 }
 
-// *_MASS.TXT
-// *ed.Backup
+var suffixs = []extension{
+	"_MASS.TXT", "ed.Backup",
+}
+
 // General*.msh
 // Preliminary*.msh
 // General*.log
@@ -73,15 +74,24 @@ func main() {
 	fmt.Println("Output folder:")
 	fmt.Println(outputFolder)
 
-	toFilter := make(chan fileParam)
-	toMovingFile := make(chan fileParam)
-
-	go movingFiles(outputFolder, toMovingFile)
-	go filter(exts, toFilter, toMovingFile)
-
 	for _, inputFolder := range inputFolders {
-		search(inputFolder, "", toFilter)
+		toFilter := search(inputFolder, []folder{""})
+		toMoving := filter(toFilter)
+		success := movingFiles(outputFolder, toMoving)
+		if <-success {
+			fmt.Println("Done...", inputFolder)
+		}
 	}
 
-	time.Sleep(1000)
+	// toFilter := make(chan fileParam)
+	// toMovingFile := make(chan fileParam)
+	//
+	// go movingFiles(outputFolder, toMovingFile)
+	// go filter(exts, toFilter, toMovingFile)
+	//
+	// for _, inputFolder := range inputFolders {
+	// 	search(inputFolder, "", toFilter)
+	// }
+	//
+	// time.Sleep(1000)
 }

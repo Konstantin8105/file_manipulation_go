@@ -6,24 +6,35 @@ import (
 	"time"
 )
 
-func filter(exts []extension, fileFromChannel, movingFile chan fileParam) {
-	for {
-		file := <-fileFromChannel
-		//fmt.Println("TAKE TO FILTER: ", file)
-		fileExension := path.Ext(file.fileInfo.Name())
-		//fmt.Println("fileExension = ", fileExension)
-		//if len(ext) > 0 {
-		for _, ext := range exts {
-			if len(ext) > 0 && len(fileExension) > 0 {
-				//if strings.HasSuffix(file.fileInfo.Name(), string(ext)) && len(ext) > 0 {
-				if strings.Compare(string(ext), fileExension[1:]) == 0 {
-					if time.Since(file.fileInfo.ModTime()).Hours() > 24.0 {
+func filter(fromSearch chan fileParam) chan fileParam {
+	movingFile := make(chan fileParam)
+	go func() {
+		for file := range fromSearch {
+			fileExension := path.Ext(file.fileInfo.Name())
+			isFound := false
+			for _, ext := range exts {
+				if len(ext) > 0 && len(fileExension) > 0 && time.Since(file.fileInfo.ModTime()).Hours() > 24.0 {
+					if strings.Compare(string(ext), fileExension[1:]) == 0 {
 						//fmt.Println("SEND FROM FILTER", file.Sting())
 						movingFile <- file
+						isFound = true
+						break
+					}
+				}
+			}
+			if !isFound {
+				for _, suffix := range suffixs {
+					if len(suffix) > 0 && len(fileExension) > 0 && time.Since(file.fileInfo.ModTime()).Hours() > 24.0 {
+						if strings.HasSuffix(file.fileInfo.Name(), string(suffix)) {
+							//fmt.Println("SEND FROM FILTER BY SUFFIX --", file.Sting())
+							movingFile <- file
+							break
+						}
 					}
 				}
 			}
 		}
-		//}
-	}
+		close(movingFile)
+	}()
+	return movingFile
 }
