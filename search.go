@@ -10,16 +10,32 @@ var excludeFolders = []folder{
 }
 
 func search(inputFolder folder, internalPaths []folder) chan fileParam {
-	toFilter := make(chan fileParam)
+	toFilter := make(chan fileParam, 1000)
 	go func() {
 	begin:
 		folderLists := make([]folder, 0)
 		for _, internalPath := range internalPaths {
+
+			// printAll := false
+
+			//X:\2 Project Execution\Steel Structure Calculations\EF16003\STAAD model
+			// if string(internalPath) == "\\EF16003\\STAAD model" {
+			// 	fmt.Println(fmt.Sprintf("Search in folder: %s%s", inputFolder, internalPath))
+			// 	printAll = true
+			// }
+
 			files, err := ioutil.ReadDir(fmt.Sprintf("%s\\%s", inputFolder, internalPath))
 			if err != nil {
+				fmt.Println("Error: Search function - cannot read dir")
 				return
 			}
+			// if len(files) == 0 {
+			// 	fmt.Println("Empty folder:", inputFolder, internalPath)
+			// }
 			for _, file := range files {
+				// if printAll {
+				// 	fmt.Println(file.Name())
+				// }
 				if file.IsDir() {
 					isExclude := false
 					for _, excludeFolder := range excludeFolders {

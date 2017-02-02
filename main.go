@@ -71,10 +71,16 @@ func main() {
 		fmt.Println(ext)
 	}
 
+	fmt.Println("Search suffix:")
+	for _, s := range suffixs {
+		fmt.Println(s)
+	}
+
 	fmt.Println("Output folder:")
 	fmt.Println(outputFolder)
 
 	for _, inputFolder := range inputFolders {
+		fmt.Println("\nStart folder :", inputFolder)
 		toFilter := search(inputFolder, []folder{""})
 		toMoving := filter(toFilter)
 		success := movingFiles(outputFolder, toMoving)

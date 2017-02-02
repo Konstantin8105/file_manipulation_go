@@ -69,12 +69,14 @@ func movingFiles(outputFolder folder, fileFromChannel chan fileParam) chan bool 
 
 			// remove resource
 
+			fmt.Println("Remove file ->", inputFileName)
 			err = os.Remove(inputFileName)
 			if err != nil {
 				fmt.Println(err.Error())
 				return
 			}
 		}
+		success <- true
 		close(success)
 	}()
 	return success
