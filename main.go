@@ -6,13 +6,6 @@ import (
 	"github.com/Konstantin8105/file_manipulation_go/fileManipulation"
 )
 
-// func (file fileParam) Sting() string {
-// 	if !file.fileInfo.IsDir() {
-// 		return fmt.Sprintln("File:", string(file.basePath), string(file.path), file.fileInfo.Name())
-// 	}
-// 	return fmt.Sprintln("Directory:", string(file.basePath), string(file.path), file.fileInfo.Name())
-// }
-
 func main() {
 
 	var (
@@ -37,7 +30,7 @@ func main() {
 	for _, inputFolder := range inputFolders {
 		err := fileManipulation.Cleaning(inputFolder, outputFolder)
 		if err != nil {
-			fmt.Println("Error:" + err)
+			fmt.Println("Error:", err)
 			continue
 		}
 	}
