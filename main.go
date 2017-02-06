@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 )
 
 type folder string
@@ -49,6 +50,8 @@ var suffixs = []extension{
 // Preliminary*.log
 
 func main() {
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	var (
 		inputFolders = []folder{
