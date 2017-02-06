@@ -1,19 +1,20 @@
-package main
+package fileManipulation
 
 import (
 	"fmt"
 	"io/ioutil"
 )
 
-var excludeFolders = []folder{
-	".git",
-}
+//
+// var excludeFolders = []folder{
+// 	".git",
+// }
 
-func search(inputFolder folder, internalPaths []folder) chan fileParam {
+func search(inputFolder Folder, internalPaths []Folder) chan fileParam {
 	toFilter := make(chan fileParam, 1000)
 	go func() {
 	begin:
-		folderLists := make([]folder, 0)
+		folderLists := make([]Folder, 0)
 		for _, internalPath := range internalPaths {
 
 			// printAll := false
@@ -23,6 +24,8 @@ func search(inputFolder folder, internalPaths []folder) chan fileParam {
 			// 	fmt.Println(fmt.Sprintf("Search in folder: %s%s", inputFolder, internalPath))
 			// 	printAll = true
 			// }
+
+			//TODO: Mark folders with std files
 
 			files, err := ioutil.ReadDir(fmt.Sprintf("%s\\%s", inputFolder, internalPath))
 			if err != nil {
@@ -37,15 +40,15 @@ func search(inputFolder folder, internalPaths []folder) chan fileParam {
 				// 	fmt.Println(file.Name())
 				// }
 				if file.IsDir() {
-					isExclude := false
-					for _, excludeFolder := range excludeFolders {
-						if file.Name() == string(excludeFolder) {
-							isExclude = true
-						}
-					}
-					if !isExclude {
-						folderLists = append(folderLists, folder(fmt.Sprintf("%s\\%s", internalPath, file.Name())))
-					}
+					// isExclude := false
+					// for _, excludeFolder := range excludeFolders {
+					// 	if file.Name() == string(excludeFolder) {
+					// 		isExclude = true
+					// 	}
+					// }
+					// if !isExclude {
+					folderLists = append(folderLists, folder(fmt.Sprintf("%s\\%s", internalPath, file.Name())))
+					// }
 				} else {
 					p := new(fileParam)
 					p.fileInfo = file

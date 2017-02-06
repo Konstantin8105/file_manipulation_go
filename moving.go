@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
+
+	"github.com/Konstantin8105/file_manipulation_go/fileManipulation"
 )
 
 func movingFiles(outputFolder folder, fileFromChannel chan fileParam) chan bool {
@@ -32,30 +33,37 @@ func movingFiles(outputFolder folder, fileFromChannel chan fileParam) chan bool 
 				// fmt.Println("folder is exist -->", generalFolderName)
 			}
 
-			// copy of file
 			inputFileName := fmt.Sprintf("%s\\%s\\%s", string(file.basePath), string(file.path)[1:], file.fileInfo.Name())
-			inputFile, err := os.Open(inputFileName)
-			if err != nil {
-				fmt.Println("counter", counter)
-				fmt.Println("Can not open file", inputFileName)
-				return
-			}
-
 			outputFileName := fmt.Sprintf("%s\\%s", generalFolderName, file.fileInfo.Name())
-			outputFile, err := os.Create(outputFileName)
-			defer outputFile.Close()
+			err := fileManipulation.copy(inputFileName, outputFileName)
 			if err != nil {
-				fmt.Println("counter", counter)
-				fmt.Println("Can not create a new file", outputFileName)
 				return
 			}
 
-			_, err = io.Copy(outputFile, inputFile)
-			if err != nil {
-				fmt.Println("counter", counter)
-				fmt.Println("Can not copy file", outputFileName)
-				return
-			}
+			// // copy of file
+			// inputFileName := fmt.Sprintf("%s\\%s\\%s", string(file.basePath), string(file.path)[1:], file.fileInfo.Name())
+			// inputFile, err := os.Open(inputFileName)
+			// if err != nil {
+			// 	fmt.Println("counter", counter)
+			// 	fmt.Println("Can not open file", inputFileName)
+			// 	return
+			// }
+			//
+			// outputFileName := fmt.Sprintf("%s\\%s", generalFolderName, file.fileInfo.Name())
+			// outputFile, err := os.Create(outputFileName)
+			// defer outputFile.Close()
+			// if err != nil {
+			// 	fmt.Println("counter", counter)
+			// 	fmt.Println("Can not create a new file", outputFileName)
+			// 	return
+			// }
+			//
+			// _, err = io.Copy(outputFile, inputFile)
+			// if err != nil {
+			// 	fmt.Println("counter", counter)
+			// 	fmt.Println("Can not copy file", outputFileName)
+			// 	return
+			// }
 
 			err = outputFile.Sync()
 			if err != nil {
