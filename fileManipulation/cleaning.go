@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"time"
+	"errors"
 )
 
 // Folder - folder like string
@@ -52,6 +53,7 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 	go func() {
 		defer close(tempFiles)
 		for folder := range staadFolders {
+			fmt.Printf("F")
 			files, err := ioutil.ReadDir(string(folder))
 			if err != nil {
 				*errChannel <- err
@@ -81,17 +83,20 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 }
 
 func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
+	fmt.Printf(".")
 	staadFolders := make(chan Folder)
 	errFunc := make(chan error)
 	go func() {
 		defer close(staadFolders)
-		folders := make([]Folder, 1)
+		fmt.Printf("#")
+		folders := make([]Folder, 10)
 		folders = append(folders, inputFolder)
 		err := getInternalDirectory(inputFolder, folders)
 		if err != nil {
 			errFunc <- err
 			return
 		}
+		fmt.Println("folders",folders)
 		for _, folder := range folders {
 			ok, err := folder.withStaadFiles()
 			if err != nil {
@@ -107,6 +112,11 @@ func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
 }
 
 func (folder Folder) withStaadFiles() (bool, error) {
+	fmt.Printf("S")
+	fmt.Println(string(folder))
+	if len(string(folder)) == 0{
+		return false, errors.New("Null size of folder")
+	}
 	files, err := ioutil.ReadDir(string(folder))
 	if err != nil {
 		return false, err
@@ -123,20 +133,30 @@ func (folder Folder) withStaadFiles() (bool, error) {
 }
 
 func getInternalDirectory(folder Folder, internalDir []Folder) error {
+	//fmt.Println("internal dir")
+	//fmt.Println(string(folder))
+	//fmt.Println(internalDir)
 	files, err := ioutil.ReadDir(string(folder))
 	if err != nil {
 		return err
 	}
-
+	//defer fmt.Println("internalDir == ",internalDir)
 	for _, file := range files {
 		if file.IsDir() {
-			var intDir Folder = Folder(string(folder) + "//" + file.Name())
-			internalDir = append(internalDir, intDir)
-			err := getInternalDirectory(intDir, internalDir)
+			var intDir Folder = Folder(string(folder) + "\\" + file.Name())
+			internalDir = append(internalDir, Folder(intDir))
+			///ini := make([]Folder,10)
+
+			return nil
+			// TODO do better
+			err := getInternalDirectory(intDir, internalDir)//ini)
 			if err != nil {
 				return err
 			}
+			//internalDir = append(internalDir,ini...)
+			//fmt.Printf(string(intDir))
 		}
 	}
+	//fmt.Printf("+")
 	return nil
 }

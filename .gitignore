@@ -22,3 +22,8 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+#Vim files
+*.go.swp
+*.go.un~
+*.go~

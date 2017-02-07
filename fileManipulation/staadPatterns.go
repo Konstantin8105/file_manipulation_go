@@ -28,6 +28,7 @@ var staadFile = []string{
 
 func isStaadFile(filename string) bool {
 	for _, ext := range staadFile {
+		// TODO check - have we errors here
 		if strings.HasSuffix(filename, ext) {
 			return true
 		}
