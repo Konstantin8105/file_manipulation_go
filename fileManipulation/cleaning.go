@@ -41,7 +41,11 @@ func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Fo
 		defer close(success)
 		for tempFile := range tempFiles {
 			// TODO moving
-			fmt.Println("temp file ", tempFile.path, tempFile.fileInfo.Name())
+			// _ = tempFile
+			// fmt.Printf("|")//tempFile.path, tempFile.fileInfo.Name())
+
+			//fmt.Println(tempFile.path,tempFile.fileInfo.Name())
+			fmt.Println(tempFile.fileInfo.Name())
 		}
 		success <- true
 	}()
@@ -53,7 +57,7 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 	go func() {
 		defer close(tempFiles)
 		for folder := range staadFolders {
-			fmt.Printf("F")
+			//fmt.Printf("F")
 			files, err := ioutil.ReadDir(string(folder))
 			if err != nil {
 				*errChannel <- err
@@ -72,7 +76,7 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 							folder := folder
 							tempFiles <- fileParam{fileInfo: file, path: folder}
 						} else {
-							fmt.Println("Maybe add for delete list : ", file.Name())
+							//fmt.Println("Maybe add for delete list : ", file.Name())
 						}
 					}
 				}
@@ -83,21 +87,14 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 }
 
 func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
-	fmt.Printf(".")
+	//fmt.Printf(".")
 	staadFolders := make(chan Folder)
 	errFunc := make(chan error)
 	go func() {
 		defer close(staadFolders)
-		fmt.Printf("#")
-		folders := make([]Folder, 10)
-		folders = append(folders, inputFolder)
-		err := getInternalDirectory(inputFolder, folders)
-		if err != nil {
-			errFunc <- err
-			return
-		}
-		fmt.Println("folders",folders)
-		for _, folder := range folders {
+		//fmt.Printf("#")
+		folders := getInternalDirectory(inputFolder, &errFunc)
+		for folder := range folders {
 			ok, err := folder.withStaadFiles()
 			if err != nil {
 				errFunc <- err
@@ -112,8 +109,8 @@ func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
 }
 
 func (folder Folder) withStaadFiles() (bool, error) {
-	fmt.Printf("S")
-	fmt.Println(string(folder))
+	//fmt.Printf("S")
+	//fmt.Println(string(folder))
 	if len(string(folder)) == 0{
 		return false, errors.New("Null size of folder")
 	}
@@ -125,6 +122,7 @@ func (folder Folder) withStaadFiles() (bool, error) {
 	for _, file := range files {
 		if !file.IsDir() {
 			if isStaadFile(file.Name()) {
+				//fmt.Println("FOUND => ", file.Name(), "|| FOLDER => ",folder)
 				return true, nil
 			}
 		}
@@ -132,31 +130,24 @@ func (folder Folder) withStaadFiles() (bool, error) {
 	return false, nil
 }
 
-func getInternalDirectory(folder Folder, internalDir []Folder) error {
-	//fmt.Println("internal dir")
-	//fmt.Println(string(folder))
-	//fmt.Println(internalDir)
-	files, err := ioutil.ReadDir(string(folder))
-	if err != nil {
-		return err
-	}
-	//defer fmt.Println("internalDir == ",internalDir)
-	for _, file := range files {
-		if file.IsDir() {
-			var intDir Folder = Folder(string(folder) + "\\" + file.Name())
-			internalDir = append(internalDir, Folder(intDir))
-			///ini := make([]Folder,10)
-
-			return nil
-			// TODO do better
-			err := getInternalDirectory(intDir, internalDir)//ini)
+func getInternalDirectory(folder Folder, errChannel *chan error) chan Folder {
+	channel := make(chan Folder)
+	go func(){
+			defer close(channel)
+			channel <- folder
+			files, err := ioutil.ReadDir(string(folder))
 			if err != nil {
-				return err
+					*errChannel <- err
 			}
-			//internalDir = append(internalDir,ini...)
-			//fmt.Printf(string(intDir))
-		}
-	}
-	//fmt.Printf("+")
-	return nil
+			for _, file := range files {
+				if file.IsDir() {
+						in := Folder(string(folder) + "\\" + file.Name())
+						fs := getInternalDirectory(in,errChannel)
+						for f:=range fs{
+								channel <- f
+						}
+				}
+			}
+	}()
+	return channel
 }
