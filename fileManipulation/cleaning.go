@@ -1,12 +1,12 @@
 package fileManipulation
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"time"
-	"errors"
 )
 
 // Folder - folder like string
@@ -40,12 +40,36 @@ func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Fo
 	go func() {
 		defer close(success)
 		for tempFile := range tempFiles {
-			// TODO moving
-			// _ = tempFile
-			// fmt.Printf("|")//tempFile.path, tempFile.fileInfo.Name())
+			inputFileName, outputFileName, folder, err := convert(tempFile, inputFolder, outputFolder)
+			if err != nil {
+				errChannel <- err
+				return
+			}
 
-			//fmt.Println(tempFile.path,tempFile.fileInfo.Name())
-			fmt.Println(tempFile.fileInfo.Name())
+			//err := createDirectory(folder)
+			//if err != nil{
+			//	errChannel <- err
+			//	return
+			//}
+
+			//err := Copy(inutFileName, outputFileName)
+			//if err != nil{
+			//	errChannel <- err
+			//	return
+			//}
+
+			//err := md5checkFileCompare(inputFileName, outputFileName)
+			//if err != nil{
+			//	errChannel <- err
+			//	return
+			//}
+
+			//err := remove(inputFileName)
+			//if err != nil{
+			//	errChannel <- err
+			//	return
+			//}
+
 		}
 		success <- true
 	}()
@@ -111,7 +135,7 @@ func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
 func (folder Folder) withStaadFiles() (bool, error) {
 	//fmt.Printf("S")
 	//fmt.Println(string(folder))
-	if len(string(folder)) == 0{
+	if len(string(folder)) == 0 {
 		return false, errors.New("Null size of folder")
 	}
 	files, err := ioutil.ReadDir(string(folder))
@@ -132,22 +156,22 @@ func (folder Folder) withStaadFiles() (bool, error) {
 
 func getInternalDirectory(folder Folder, errChannel *chan error) chan Folder {
 	channel := make(chan Folder)
-	go func(){
-			defer close(channel)
-			channel <- folder
-			files, err := ioutil.ReadDir(string(folder))
-			if err != nil {
-					*errChannel <- err
-			}
-			for _, file := range files {
-				if file.IsDir() {
-						in := Folder(string(folder) + "\\" + file.Name())
-						fs := getInternalDirectory(in,errChannel)
-						for f:=range fs{
-								channel <- f
-						}
+	go func() {
+		defer close(channel)
+		channel <- folder
+		files, err := ioutil.ReadDir(string(folder))
+		if err != nil {
+			*errChannel <- err
+		}
+		for _, file := range files {
+			if file.IsDir() {
+				in := Folder(string(folder) + "\\" + file.Name())
+				fs := getInternalDirectory(in, errChannel)
+				for f := range fs {
+					channel <- f
 				}
 			}
+		}
 	}()
 	return channel
 }
