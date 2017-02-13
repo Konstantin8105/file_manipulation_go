@@ -37,6 +37,12 @@ func Copy(inputFileName, outputFileName string) error {
  		return err
  	}
 
+			//err := md5checkFileCompare(inputFileName, outputFileName)
+			//if err != nil{
+			//	errChannel <- err
+			//	return
+			//}
+
 	err = outputFile.Sync()
  	if err != nil {
  		return err
@@ -45,18 +51,18 @@ func Copy(inputFileName, outputFileName string) error {
  	return nil
  }
 
- func convert(file fileParam, inputFolder, outputFolder Folder) (in,out string, folder Folder, error) {
+ func convert(file fileParam, inputFolder, outputFolder Folder) (in string,out string, folder Folder,err error) {
 
 	 if file == nil{
-	 	return nil,nil,fmt.Errorf("(convert): file is empty")
+	 	return nil,nil,nil,fmt.Errorf("(convert): file is empty")
 	 }
 
 	 if len(string(inputFolder))==0 {
-	 	return nil,nil,fmt.Errorf("(convert): inputFolder is empty")
+	 	return nil,nil,nil,fmt.Errorf("(convert): inputFolder is empty")
 	 }
 
 	 if len(string(outputFolder))==0 {
-	 	return nil,nil,fmt.Errorf("(convert): outputFolder is empty")
+	 	return nil,nil,nil,fmt.Errorf("(convert): outputFolder is empty")
 	 }
 
 	 fmt.Println("--------")
@@ -79,5 +85,5 @@ func Copy(inputFileName, outputFileName string) error {
 	 fmt.Println("========")
 
 
-	 return in,out,nil
+	 return in,out,nil,nil
  }

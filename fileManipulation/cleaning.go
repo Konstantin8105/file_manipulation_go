@@ -58,12 +58,6 @@ func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Fo
 			//	return
 			//}
 
-			//err := md5checkFileCompare(inputFileName, outputFileName)
-			//if err != nil{
-			//	errChannel <- err
-			//	return
-			//}
-
 			//err := remove(inputFileName)
 			//if err != nil{
 			//	errChannel <- err
