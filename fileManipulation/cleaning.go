@@ -42,27 +42,31 @@ func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Fo
 		for tempFile := range tempFiles {
 			inputFileName, outputFileName, folder, err := convert(tempFile, inputFolder, outputFolder)
 			if err != nil {
-				errChannel <- err
+				*errChannel <- err
 				return
 			}
 
-			//err := createDirectory(folder)
-			//if err != nil{
-			//	errChannel <- err
-			//	return
-			//}
+			fmt.Println("inputFileName  = ", inputFileName)
+			fmt.Println("outputFileName = ", outputFileName)
+			fmt.Println("folder         = ", folder)
 
-			//err := Copy(inutFileName, outputFileName)
-			//if err != nil{
-			//	errChannel <- err
-			//	return
-			//}
-
-			//err := remove(inputFileName)
-			//if err != nil{
-			//	errChannel <- err
-			//	return
-			//}
+			// err = createDirectory(folder)
+			// if err != nil {
+			// 	*errChannel <- err
+			// 	return
+			// }
+			//
+			// err = CopyWithCheckingMd5(inputFileName, outputFileName)
+			// if err != nil {
+			// 	*errChannel <- err
+			// 	return
+			// }
+			//
+			// err = remove(inputFileName)
+			// if err != nil {
+			// 	*errChannel <- err
+			// 	return
+			// }
 
 		}
 		success <- true
