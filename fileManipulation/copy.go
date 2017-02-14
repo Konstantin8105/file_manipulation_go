@@ -11,29 +11,24 @@ import (
 
 // CopyWithCheckingMd5 - copy file with chacking md5
 func CopyWithCheckingMd5(inputFileName, outputFileName string) error {
-	// fmt.Println("outputFileName = ", outputFileName)
-	// fmt.Println("Copy #1")
 	err := Copy(inputFileName, outputFileName)
 	if err != nil {
 		return err
 	}
-	// fmt.Println("Copy #2")
+
 	in, err := hashFileMd5(inputFileName)
 	if err != nil {
 		return err
 	}
 
-	// fmt.Println("Copy #3")
 	out, err := hashFileMd5(outputFileName)
 	if err != nil {
 		return err
 	}
 
-	// fmt.Println("Copy #4")
 	if in != out {
 		return fmt.Errorf("hash md5 files is different")
 	}
-	// fmt.Println("Copy #5")
 	return nil
 }
 
@@ -105,10 +100,7 @@ func hashFileMd5(fileName string) (string, error) {
 
 func convert(file fileParam, inputFolder, outputFolder Folder) (in string, out string, folder Folder, err error) {
 
-	// if file == nil {
-	// 	return "", "", "", fmt.Errorf("(convert): file is empty")
-	// }
-
+	// Check input data
 	if len(string(inputFolder)) == 0 {
 		return "", "", "", fmt.Errorf("(convert): inputFolder is empty")
 	}
@@ -116,13 +108,6 @@ func convert(file fileParam, inputFolder, outputFolder Folder) (in string, out s
 	if len(string(outputFolder)) == 0 {
 		return "", "", "", fmt.Errorf("(convert): outputFolder is empty")
 	}
-
-	// fmt.Println("--------")
-	// fmt.Println("file.fileInfo = ", file.fileInfo)
-	// fmt.Println("file.path     = ", file.path)
-	// fmt.Println("input         = ", inputFolder)
-	// fmt.Println("output        = ", outputFolder)
-	// fmt.Println("--------")
 
 	folder = Folder(inputFolder)
 	folder = Folder(strings.Replace(string(folder), "\\", "_", -1))
@@ -134,25 +119,21 @@ func convert(file fileParam, inputFolder, outputFolder Folder) (in string, out s
 	out = fmt.Sprintf("%s\\%s\\%s", outputFolder, folder, file.fileInfo.Name())
 
 	folder = Folder(fmt.Sprintf("%s\\%s", outputFolder, string(folder)))
-	// fmt.Println("========")
-	// fmt.Println("in  = ", in)
-	// fmt.Println("out = ", out)
-	// fmt.Println("folder = ", folder)
-	// fmt.Println("========")
 
 	return in, out, folder, nil
 }
 
 func createDirectory(folder Folder) error {
+	// Check input data
 	if len(string(folder)) == 0 {
 		return fmt.Errorf("folder for creating is empty")
 	}
+
 	if _, err := os.Stat(string(folder)); os.IsNotExist(err) {
 		err := os.MkdirAll(string(folder), os.ModePerm)
 		if err != nil {
 			return err
 		}
-		// fmt.Println("Create directory: ", string(folder))
 	}
 	return nil
 }
@@ -162,6 +143,5 @@ func removeFile(fileName string) error {
 	if err != nil {
 		return err
 	}
-	// fmt.Println("Remove file : ", fileName)
 	return nil
 }

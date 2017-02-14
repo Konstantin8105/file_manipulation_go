@@ -1,9 +1,26 @@
 package fileManipulation
 
-import "runtime"
+import (
+	"fmt"
+	"runtime"
+)
 
 //BackUp - copy files from inputFolder to outputFolder
 func BackUp(inputFolder, outputFolder Folder) error {
+
+	// Check input data
+	if string(inputFolder)[len(inputFolder)-1] == '\\' {
+		inputFolder = Folder(string(inputFolder)[:(len(inputFolder) - 1)])
+	}
+
+	if string(outputFolder)[len(outputFolder)-1] == '\\' {
+		outputFolder = Folder(string(outputFolder)[:(len(outputFolder) - 1)])
+	}
+
+	if string(inputFolder) == string(outputFolder) {
+		return fmt.Errorf("Input and output folder cannot be same")
+	}
+
 	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(0))
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
@@ -26,7 +43,10 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 	errFunc := make(chan error)
 	go func() {
 		defer close(inputFiles)
+		//folders := getInternalDirectory(inputFolder, &errFunc)
+		//for folder := range folders {
 		// TODO
+		//}
 	}()
 	return inputFiles, &errFunc
 }
