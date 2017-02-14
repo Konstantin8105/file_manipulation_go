@@ -26,9 +26,12 @@ var staadFile = []string{
 	".std",
 }
 
+var ignoreFolderName = []string{
+	".svn", ".git",
+}
+
 func isStaadFile(filename string) bool {
 	for _, ext := range staadFile {
-		// TODO check - have we errors here
 		if strings.HasSuffix(filename, ext) {
 			return true
 		}
@@ -39,6 +42,15 @@ func isStaadFile(filename string) bool {
 func isStaadTempFile(filename string) bool {
 	for _, ext := range extentions {
 		if strings.HasSuffix(filename, ext) {
+			return true
+		}
+	}
+	return false
+}
+
+func isIgnoreFolder(folderName string) bool {
+	for _, ignore := range ignoreFolderName {
+		if folderName == ignore {
 			return true
 		}
 	}

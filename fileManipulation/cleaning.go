@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -19,14 +20,29 @@ type fileParam struct {
 
 // Cleaning function for cleaning folder from temp file of STAAD
 func Cleaning(inputFolder, outputFolder Folder) error {
+
+	//TODO : last symbol cannot be \\
+
+	if string(inputFolder) == string(outputFolder) {
+		return fmt.Errorf("Input and output folder cannot be same")
+	}
+	if strings.HasSuffix(string(outputFolder), string(inputFolder)) {
+		return fmt.Errorf("Output folder cannot be inside input folder")
+	}
+
 	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(0))
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	//fmt.Println("Step #1")
 	staadFolders, errChannel := getStaadFolders(inputFolder)
 	defer close(*errChannel)
+	//fmt.Println("Step #2")
 	tempFiles := filterTempStaadFiles(staadFolders, errChannel)
+	//fmt.Println("Step #3")
 	success := moveTempStaadFiles(tempFiles, inputFolder, outputFolder, errChannel)
+	defer close(success)
 
+	//fmt.Println("Step #4")
 	select {
 	case <-success:
 		return nil
@@ -35,7 +51,7 @@ func Cleaning(inputFolder, outputFolder Folder) error {
 	}
 }
 
-func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Folder, errChannel *chan error) <-chan bool {
+func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Folder, errChannel *chan error) chan bool {
 	success := make(chan bool)
 	go func() {
 		defer close(success)
@@ -46,28 +62,30 @@ func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Fo
 				return
 			}
 
-			fmt.Println("inputFileName  = ", inputFileName)
-			fmt.Println("outputFileName = ", outputFileName)
-			fmt.Println("folder         = ", folder)
+			// fmt.Println("========")
+			// fmt.Println("inputFileName  = ", inputFileName)
+			// fmt.Println("outputFileName = ", outputFileName)
+			// fmt.Println("folder         = ", folder)
 
-			// err = createDirectory(folder)
-			// if err != nil {
-			// 	*errChannel <- err
-			// 	return
-			// }
-			//
-			// err = CopyWithCheckingMd5(inputFileName, outputFileName)
-			// if err != nil {
-			// 	*errChannel <- err
-			// 	return
-			// }
-			//
-			// err = remove(inputFileName)
-			// if err != nil {
-			// 	*errChannel <- err
-			// 	return
-			// }
+			err = createDirectory(folder)
+			if err != nil {
+				*errChannel <- err
+				return
+			}
 
+			err = CopyWithCheckingMd5(inputFileName, outputFileName)
+			if err != nil {
+				*errChannel <- err
+				return
+			}
+
+			err = removeFile(inputFileName)
+			if err != nil {
+				*errChannel <- err
+				return
+			}
+
+			//fmt.Println("| MOVE FILE | ", inputFileName)
 		}
 		success <- true
 	}()
@@ -117,12 +135,14 @@ func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
 		//fmt.Printf("#")
 		folders := getInternalDirectory(inputFolder, &errFunc)
 		for folder := range folders {
+			//fmt.Println("Is Staad folder?")
 			ok, err := folder.withStaadFiles()
 			if err != nil {
 				errFunc <- err
 				return
 			}
 			if ok {
+				//fmt.Println("YES")
 				staadFolders <- folder
 			}
 		}
@@ -163,7 +183,11 @@ func getInternalDirectory(folder Folder, errChannel *chan error) chan Folder {
 		}
 		for _, file := range files {
 			if file.IsDir() {
+				if isIgnoreFolder(file.Name()) {
+					continue
+				}
 				in := Folder(string(folder) + "\\" + file.Name())
+				//fmt.Println("F in ==", in)
 				fs := getInternalDirectory(in, errChannel)
 				for f := range fs {
 					channel <- f

@@ -7,6 +7,11 @@ import (
 )
 
 func main() {
+	cleaning()
+	backup()
+}
+
+func cleaning() {
 	var (
 		inputFolders = []fileManipulation.Folder{
 			"Z:\\Temp",
@@ -20,6 +25,23 @@ func main() {
 
 	for _, inputFolder := range inputFolders {
 		err := fileManipulation.Cleaning(inputFolder, outputFolder)
+		if err != nil {
+			fmt.Println("Error:", err)
+			continue
+		}
+	}
+}
+
+func backup() {
+	var (
+		inputFolder   fileManipulation.Folder = "Z:\\SVNSERVER"
+		outputFolders                         = []fileManipulation.Folder{
+			"X:\\2 Project Execution\\Steel Structure Calculations",
+			"Z:\\GoogleDisk",
+		}
+	)
+	for _, outputFolder := range outputFolders {
+		err := fileManipulation.BackUp(inputFolder, outputFolder)
 		if err != nil {
 			fmt.Println("Error:", err)
 			continue
