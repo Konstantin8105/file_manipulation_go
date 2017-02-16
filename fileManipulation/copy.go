@@ -35,13 +35,6 @@ func CopyWithCheckingMd5(inputFileName, outputFileName string) error {
 // Copy - copy files
 func Copy(inputFileName, outputFileName string) (err error) {
 
-
-	defer func(){
-		if err != nil{
-			fmt.Println("ERROR ---> ",err)
-		}
-	}()
-
 	if len(inputFileName) == 0 {
 		return fmt.Errorf("inputFileName is zero: %s", inputFileName)
 	}
@@ -54,54 +47,57 @@ func Copy(inputFileName, outputFileName string) (err error) {
 	if err != nil {
 		return err
 	}
-	// TODO WRONG CLOSE FILE
-	//defer func(){
-	//	errClose := inputFile.Close()
-	//	if err == nil{
-	//		err = errClose
-	//	}
-	//}()
+	defer func() {
+		errFile := inputFile.Close()
+		if errFile != nil {
+			if err != nil {
+				err = fmt.Errorf("%v ; %v", err, errFile)
+			} else {
+				err = errFile
+			}
+		}
+	}()
 
 	outputFile, err := os.Create(outputFileName)
 	if err != nil {
 		return err
 	}
-	defer outputFile.Close()
+	defer func() {
+		errFile := outputFile.Close()
+		if errFile != nil {
+			if err != nil {
+				err = fmt.Errorf("%v ; %v", err, errFile)
+			} else {
+				err = errFile
+			}
+		}
+	}()
 
 	_, err = io.Copy(outputFile, inputFile)
 	if err != nil {
 		return err
 	}
 
-	err = outputFile.Sync()
-	if err != nil {
-		return err
-	}
-
-	err = inputFile.Close()
-	if err != nil{
-		return err
-	}
-
-	err = outputFile.Close()
-	if err != nil{
-		return err
-	}
 	return nil
 }
 
-func hashFileMd5(fileName string) (string, error) {
-	//Initialize variable returnMD5String now in case an error has to be returned
-	var returnMD5String string
+func hashFileMd5(fileName string) (returnMD5String string, err error) {
 
 	//Open the passed argument and check for any error
 	file, err := os.Open(fileName)
 	if err != nil {
 		return returnMD5String, err
 	}
-
-	//Tell the program to call the following function when the current function returns
-	defer file.Close()
+	defer func() {
+		errFile := file.Close()
+		if errFile != nil {
+			if err != nil {
+				err = fmt.Errorf("%v ; %v", err, errFile)
+			} else {
+				err = errFile
+			}
+		}
+	}()
 
 	//Open a new hash interface to write to
 	hash := md5.New()
