@@ -8,7 +8,7 @@ import (
 
 func main() {
 	cleaning()
-	backup()
+	//backup()
 }
 
 func cleaning() {

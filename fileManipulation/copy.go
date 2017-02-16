@@ -33,7 +33,14 @@ func CopyWithCheckingMd5(inputFileName, outputFileName string) error {
 }
 
 // Copy - copy files
-func Copy(inputFileName, outputFileName string) error {
+func Copy(inputFileName, outputFileName string) (err error) {
+
+
+	defer func(){
+		if err != nil{
+			fmt.Println("ERROR ---> ",err)
+		}
+	}()
 
 	if len(inputFileName) == 0 {
 		return fmt.Errorf("inputFileName is zero: %s", inputFileName)
@@ -47,7 +54,13 @@ func Copy(inputFileName, outputFileName string) error {
 	if err != nil {
 		return err
 	}
-	defer inputFile.Close()
+	// TODO WRONG CLOSE FILE
+	//defer func(){
+	//	errClose := inputFile.Close()
+	//	if err == nil{
+	//		err = errClose
+	//	}
+	//}()
 
 	outputFile, err := os.Create(outputFileName)
 	if err != nil {
@@ -65,6 +78,15 @@ func Copy(inputFileName, outputFileName string) error {
 		return err
 	}
 
+	err = inputFile.Close()
+	if err != nil{
+		return err
+	}
+
+	err = outputFile.Close()
+	if err != nil{
+		return err
+	}
 	return nil
 }
 
