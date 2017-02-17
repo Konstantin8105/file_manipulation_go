@@ -38,22 +38,18 @@ func Cleaning(inputFolder, outputFolder Folder) error {
 		return fmt.Errorf("Output folder cannot be inside input folder")
 	}
 
-	fmt.Println("inputFolder = ", inputFolder)
-	fmt.Println("outputFolder = ", outputFolder)
 
+	// use all allowable proccesors
 	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(0))
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	fmt.Println("#1")
+	
+	// working
 	staadFolders, errChannel := getStaadFolders(inputFolder)
 	defer close(*errChannel)
-	fmt.Println("#2")
 	tempFiles := filterTempStaadFiles(staadFolders, errChannel)
-	fmt.Println("#3")
 	success := moveTempStaadFiles(tempFiles, inputFolder, outputFolder, errChannel)
-	fmt.Println("#4")
 	defer close(success)
 
-	fmt.Println("#5")
 	select {
 	case <-success:
 		return nil
@@ -65,7 +61,6 @@ func Cleaning(inputFolder, outputFolder Folder) error {
 func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Folder, errChannel *chan error) chan bool {
 	success := make(chan bool)
 	go func() {
-		defer close(success)
 		for tempFile := range tempFiles {
 			inputFileName, outputFileName, folder, err := convert(tempFile, inputFolder, outputFolder)
 			if err != nil {
@@ -101,9 +96,6 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 	go func() {
 		defer close(tempFiles)
 		for folder := range staadFolders {
-
-			fmt.Printf("F")
-
 			files, err := ioutil.ReadDir(string(folder))
 			if err != nil {
 				*errChannel <- err
@@ -137,7 +129,6 @@ func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
 	errFunc := make(chan error)
 	go func() {
 		defer close(staadFolders)
-		fmt.Printf("S")
 		folders := getInternalDirectory(inputFolder, &errFunc)
 		for folder := range folders {
 			ok, err := folder.withStaadFiles()
@@ -172,29 +163,20 @@ func (folder Folder) withStaadFiles() (bool, error) {
 	return false, nil
 }
 
-var t = 1
-
 func getInternalDirectory(folder Folder, errChannel *chan error) chan Folder {
 	channel := make(chan Folder)
 	go func() {
 		defer close(channel)
-		t = t + 1
-		fmt.Println("I1 + ", t)
 		channel <- folder
 		files, err := ioutil.ReadDir(string(folder))
 		if err != nil {
 			*errChannel <- err
 		}
-		// TODO somethink wrong with channels
-		fmt.Println("I2 + ", t)
 		for _, file := range files {
-			fmt.Println("I2.5 + ", t, "\t", file)
 			if file.IsDir() {
-				fmt.Println("I3 + ", t)
 				if isIgnoreFolder(file.Name()) {
 					continue
 				}
-				fmt.Println("I4 + ", t)
 				in := Folder(string(folder) + "\\" + file.Name())
 				fs := getInternalDirectory(in, errChannel)
 				for f := range fs {
