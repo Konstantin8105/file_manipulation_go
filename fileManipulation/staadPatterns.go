@@ -19,7 +19,7 @@ var extentions = []string{
 	".ben", ".MMTX", ".dsn",
 	".jst", ".REI_STEELDESIGNER_DATA",
 	".str", "._MASS.TXT", ".ed.Backup",
-	".msh", ".log","_L19.txt",
+	".msh", ".log", "_L19.txt",
 }
 
 var staadFile = []string{

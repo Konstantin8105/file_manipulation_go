@@ -38,11 +38,10 @@ func Cleaning(inputFolder, outputFolder Folder) error {
 		return fmt.Errorf("Output folder cannot be inside input folder")
 	}
 
-
 	// use all allowable proccesors
 	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(0))
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	
+
 	// working
 	staadFolders, errChannel := getStaadFolders(inputFolder)
 	defer close(*errChannel)
