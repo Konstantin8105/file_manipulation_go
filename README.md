@@ -9,5 +9,6 @@
 2. Create copy of file without STAAD trash files.
    *Создание копий файлов без копирования мусорных файлоа STAAD*
 
-See file **main.go** like example
-*Смотрите файл * **main.go** * в качестве примера*
+See file **main.go** like example.
+
+*Смотрите файл* **main.go** *в качестве примера*
