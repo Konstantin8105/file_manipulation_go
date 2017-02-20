@@ -63,13 +63,11 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 			for _, file := range files {
 				if !file.IsDir() {
 					if (isStaadFolder && !isStaadTempFile(file.Name())) || !isStaadFolder {
-
 						inputFiles <- fileParam{fileInfo: file, path: f}
 					}
 				}
 			}
 		}
-
 	}()
 	return inputFiles, &errFunc
 }
@@ -86,15 +84,15 @@ func copyFiles(files <-chan fileParam, inputFolder Folder, outputFolder Folder, 
 	success := make(chan bool)
 	go func() {
 		for file := range files {
-			fmt.Println("Income file  = ", file)
-			fmt.Println("inputFolder  = ", inputFolder)
-			fmt.Println("outputFolder = ", outputFolder)
 
-			inFileName := fmt.Sprintf("%s\\%s", string(inputFolder), file.fileInfo.Name())
-			outFileName := fmt.Sprintf("%s\\%s\\%s", string(outputFolder), string(file.path)[(len(string(inputFolder))+1):], file.fileInfo.Name())
+			inFileName := fmt.Sprintf("%s\\%s", file.path, file.fileInfo.Name())
 
-			fmt.Println("inFile ======> ", inFileName)
-			fmt.Println("outFile =====> ", outFileName)
+			var outFileName string
+			if len(string(inputFolder)) == len(string(file.path)) {
+				outFileName = fmt.Sprintf("%s\\%s", string(outputFolder), file.fileInfo.Name())
+			} else {
+				outFileName = fmt.Sprintf("%s\\%s\\%s", string(outputFolder), string(file.path)[(len(string(inputFolder))+1):], file.fileInfo.Name())
+			}
 
 			// optimization of copy time:
 			// - if files with same time, then no copy
@@ -106,17 +104,13 @@ func copyFiles(files <-chan fileParam, inputFolder Folder, outputFolder Folder, 
 				return
 			}
 
-			fmt.Println("isNeedCopy == ", copy)
-			fmt.Println("\n\n\n\n")
-			/*
-				if copy {
-					err := CopyWithCheckingMd5(inFileName, outFileName)
-					if err != nil {
-						*errChannel <- err
-						return
-					}
+			if copy {
+				err := CopyWithCheckingMd5(inFileName, outFileName)
+				if err != nil {
+					*errChannel <- err
+					return
 				}
-			*/
+			}
 		}
 		success <- true
 	}()
@@ -128,12 +122,12 @@ func isNeedCopy(in, out string) (b bool, err error) {
 	var inFileInfo, outFileInfo os.FileInfo
 	// check out file is exist, if not exist, then need copy
 	if outFileInfo, err = os.Stat(out); os.IsNotExist(err) {
-		// out does not exist
+		// out file does not exist
 		return b, nil
 	}
 	// check in file is exist, if not exist, then error
 	if inFileInfo, err = os.Stat(out); os.IsNotExist(err) {
-		// out does not exist
+		// in file does not exist
 		return b, err
 	}
 

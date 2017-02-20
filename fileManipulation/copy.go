@@ -11,11 +11,21 @@ import (
 
 // CopyWithCheckingMd5 - copy file with chacking md5
 func CopyWithCheckingMd5(inputFileName, outputFileName string) error {
-	err := Copy(inputFileName, outputFileName)
+	err := copyFile(inputFileName, outputFileName)
 	if err != nil {
 		return err
 	}
 
+	// copy of time
+	inputStat, err := os.Stat(inputFileName)
+	if err != nil {
+		return err
+	}
+	if err = os.Chtimes(outputFileName, inputStat.ModTime(), inputStat.ModTime()); err != nil {
+		return err
+	}
+
+	// check hash md5
 	in, err := hashFileMd5(inputFileName)
 	if err != nil {
 		return err
@@ -33,7 +43,7 @@ func CopyWithCheckingMd5(inputFileName, outputFileName string) error {
 }
 
 // Copy - copy files
-func Copy(inputFileName, outputFileName string) (err error) {
+func copyFile(inputFileName, outputFileName string) (err error) {
 
 	if len(inputFileName) == 0 {
 		return fmt.Errorf("inputFileName is zero: %s", inputFileName)
@@ -131,7 +141,12 @@ func convert(file fileParam, inputFolder, outputFolder Folder) (in string, out s
 	folder = Folder(strings.Replace(string(folder), "\\", "_", -1))
 	folder = Folder(strings.Replace(string(folder), ":", "_", -1))
 	folder = Folder(strings.Replace(string(folder), " ", "_", -1))
-	folder = Folder(fmt.Sprintf("%s\\%s", string(folder), string(file.path)[(len(inputFolder)+1):]))
+
+	if len(string(inputFolder)) == len(string(file.path)) {
+		folder = Folder(fmt.Sprintf("%s", string(folder)))
+	} else {
+		folder = Folder(fmt.Sprintf("%s\\%s", string(folder), string(file.path)[(len(inputFolder)+1):]))
+	}
 
 	in = fmt.Sprintf("%s\\%s", file.path, file.fileInfo.Name())
 	out = fmt.Sprintf("%s\\%s\\%s", outputFolder, folder, file.fileInfo.Name())
