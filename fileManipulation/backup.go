@@ -88,17 +88,26 @@ func copyFiles(files <-chan fileParam, inputFolder Folder, outputFolder Folder, 
 			inFileName := fmt.Sprintf("%s\\%s", file.path, file.fileInfo.Name())
 
 			var outFileName string
+			var outputFullFolder Folder
 			if len(string(inputFolder)) == len(string(file.path)) {
-				outFileName = fmt.Sprintf("%s\\%s", string(outputFolder), file.fileInfo.Name())
+				outputFullFolder = outputFolder
 			} else {
-				outFileName = fmt.Sprintf("%s\\%s\\%s", string(outputFolder), string(file.path)[(len(string(inputFolder))+1):], file.fileInfo.Name())
+				outputFullFolder = Folder(fmt.Sprintf("%s\\%s", string(outputFolder), string(file.path)[(len(string(inputFolder))+1):]))
+			}
+			outFileName = fmt.Sprintf("%s\\%s", outputFullFolder, file.fileInfo.Name())
+
+			// create a output folder if not exist
+			err := createDirectory(outputFullFolder)
+			if err != nil {
+				*errChannel <- err
+				return
 			}
 
 			// optimization of copy time:
 			// - if files with same time, then no copy
 			// - if files with same size, then no copy
 			var copy bool
-			copy, err := isNeedCopy(inFileName, outFileName)
+			copy, err = isNeedCopy(inFileName, outFileName)
 			if err != nil {
 				*errChannel <- err
 				return
