@@ -80,7 +80,12 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 // Transformations of file name:
 // inFileName  = C://Windows//kernel.dll
 // outFileName = X://Windows//kernel.dll
-func copyFiles(files <-chan fileParam, inputFolder Folder, outputFolder Folder, errChannel *(chan error)) chan bool {
+func copyFiles(
+	files <-chan fileParam,
+	inputFolder Folder,
+	outputFolder Folder,
+	errChannel *(chan error)) chan bool {
+
 	success := make(chan bool)
 	go func() {
 		for file := range files {
@@ -92,7 +97,8 @@ func copyFiles(files <-chan fileParam, inputFolder Folder, outputFolder Folder, 
 			if len(string(inputFolder)) == len(string(file.path)) {
 				outputFullFolder = outputFolder
 			} else {
-				outputFullFolder = Folder(fmt.Sprintf("%s\\%s", string(outputFolder), string(file.path)[(len(string(inputFolder))+1):]))
+				outputFullFolder = Folder(fmt.Sprintf(
+					"%s\\%s", string(outputFolder), string(file.path)[(len(string(inputFolder))+1):]))
 			}
 			outFileName = fmt.Sprintf("%s\\%s", outputFullFolder, file.fileInfo.Name())
 
@@ -126,26 +132,25 @@ func copyFiles(files <-chan fileParam, inputFolder Folder, outputFolder Folder, 
 	return success
 }
 
-func isNeedCopy(in, out string) (b bool, err error) {
-	b = true
+func isNeedCopy(in, out string) (_ bool, err error) {
 	var inFileInfo, outFileInfo os.FileInfo
 	// check out file is exist, if not exist, then need copy
 	if outFileInfo, err = os.Stat(out); os.IsNotExist(err) {
 		// out file does not exist
-		return b, nil
+		return true, nil
 	}
 	// check in file is exist, if not exist, then error
-	if inFileInfo, err = os.Stat(out); os.IsNotExist(err) {
+	if inFileInfo, err = os.Stat(in); os.IsNotExist(err) {
 		// in file does not exist
-		return b, err
+		return true, err
 	}
 
 	// if diff time or size, then need copy
 	if inFileInfo.Size() != outFileInfo.Size() {
-		return b, nil
+		return true, nil
 	}
 	if inFileInfo.ModTime() != outFileInfo.ModTime() {
-		return b, nil
+		return true, nil
 	}
 
 	// in 0.1% cases just copy //
@@ -154,7 +159,7 @@ func isNeedCopy(in, out string) (b bool, err error) {
 		luckyNumber = 222
 	)
 	if rand.Intn(amount) == luckyNumber {
-		return b, nil
+		return true, nil
 	}
 
 	return false, nil

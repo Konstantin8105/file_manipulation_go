@@ -172,10 +172,7 @@ func getInternalDirectory(folder Folder, errChannel *chan error) chan Folder {
 			*errChannel <- err
 		}
 		for _, file := range files {
-			if file.IsDir() {
-				if isIgnoreFolder(file.Name()) {
-					continue
-				}
+			if file.IsDir() && !isIgnoreFolder(file.Name()) {
 				in := Folder(string(folder) + "\\" + file.Name())
 				fs := getInternalDirectory(in, errChannel)
 				for f := range fs {

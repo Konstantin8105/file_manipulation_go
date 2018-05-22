@@ -20,7 +20,7 @@ var extentions = []string{
 	".jst", ".REI_STEELDESIGNER_DATA",
 	".str", "_MASS.TXT", ".ed.Backup",
 	".msh", ".log", "_L19.txt",
-	".std~", ".std.un~",
+	".std~", ".std.un~", ".LR2",
 }
 
 var staadFile = []string{
