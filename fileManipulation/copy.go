@@ -174,7 +174,8 @@ func createDirectory(folder Folder) error {
 func removeFile(fileName string) error {
 	err := os.Remove(fileName)
 	if err != nil {
-		return err
+		fmt.Printf("removeFile error : %v\n", err)
+		return nil
 	}
 	return nil
 }

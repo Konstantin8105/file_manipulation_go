@@ -20,9 +20,9 @@ func cleaning() {
 		inputFolders = []fileManipulation.Folder{
 			"Z:\\Temp",
 			"C:\\TEMP",
-			"Z:\\GoogleDisk\\Fired Heaters\\Projects",
 			"Z:\\SVNSERVER",
 			"X:\\2 Project Execution\\Steel Structure Calculations",
+			"Z:\\git-projects",
 		}
 		outputFolder fileManipulation.Folder = "E:\\Temp"
 	)
