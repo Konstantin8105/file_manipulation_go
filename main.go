@@ -10,7 +10,6 @@ import (
 func main() {
 	cleaning()
 	backup()
-	backupSource()
 	// pause //
 	fmt.Println("===\nPAUSE")
 	time.Sleep(time.Second * 8)
@@ -41,40 +40,21 @@ func cleaning() {
 }
 
 func backup() {
-	var (
-		inputFolder   fileManipulation.Folder = "Z:\\SVNSERVER"
-		outputFolders                         = []fileManipulation.Folder{
+	for _, inputFolder := range []fileManipulation.Folder{
+		"Z:\\SVNSERVER",    // old location
+		"Z:\\git-projects", // new location
+	} {
+		for _, outputFolder := range []fileManipulation.Folder{
 			"X:\\2 Project Execution\\Steel Structure Calculations",
-			"Z:\\GoogleDisk\\Fired Heaters\\Projects",
-		}
-	)
-	for _, outputFolder := range outputFolders {
-		fmt.Println("BackUp")
-		fmt.Println("input  folder = ", string(inputFolder))
-		fmt.Println("output folder = ", string(outputFolder))
-		err := fileManipulation.BackUp(inputFolder, outputFolder)
-		if err != nil {
-			fmt.Println("Error:", err)
-			continue
-		}
-	}
-}
-
-func backupSource() {
-	var (
-		inputFolder   fileManipulation.Folder = "Z:\\JAVA PROJECT"
-		outputFolders                         = []fileManipulation.Folder{
-			"Z:\\GoogleDisk\\Copy of JavaProject",
-		}
-	)
-	for _, outputFolder := range outputFolders {
-		fmt.Println("BackUp Source")
-		fmt.Println("input  folder = ", string(inputFolder))
-		fmt.Println("output folder = ", string(outputFolder))
-		err := fileManipulation.BackUp(inputFolder, outputFolder)
-		if err != nil {
-			fmt.Println("Error:", err)
-			continue
+		} {
+			fmt.Println("BackUp")
+			fmt.Println("input  folder = ", string(inputFolder))
+			fmt.Println("output folder = ", string(outputFolder))
+			err := fileManipulation.BackUp(inputFolder, outputFolder)
+			if err != nil {
+				fmt.Println("Error:", err)
+				continue
+			}
 		}
 	}
 }
