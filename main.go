@@ -23,6 +23,7 @@ func cleaning() {
 			"Z:\\SVNSERVER",
 			"X:\\2 Project Execution\\Steel Structure Calculations",
 			"Z:\\git-projects",
+			"M:\\",
 		}
 		outputFolder fileManipulation.Folder = "E:\\Temp"
 	)
