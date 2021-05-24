@@ -20,7 +20,6 @@ func cleaning() {
 		inputFolders = []fileManipulation.Folder{
 			"Z:\\Temp",
 			"C:\\TEMP",
-			"Z:\\SVNSERVER",
 			"X:\\2 Project Execution\\Steel Structure Calculations",
 			"Z:\\git-projects",
 			"M:\\",
@@ -41,21 +40,20 @@ func cleaning() {
 }
 
 func backup() {
-	for _, inputFolder := range []fileManipulation.Folder{
-		"Z:\\SVNSERVER",    // old location
-		"Z:\\git-projects", // new location
-	} {
-		for _, outputFolder := range []fileManipulation.Folder{
-			"X:\\2 Project Execution\\Steel Structure Calculations",
-		} {
-			fmt.Println("BackUp")
-			fmt.Println("input  folder = ", string(inputFolder))
-			fmt.Println("output folder = ", string(outputFolder))
-			err := fileManipulation.BackUp(inputFolder, outputFolder)
-			if err != nil {
-				fmt.Println("Error:", err)
-				continue
-			}
+	{
+		var in,out fileManipulation.Folder = "M:\\", "Z:\\git-projects"
+		fmt.Println(in," --> ", out)
+		err := fileManipulation.BackUp(in, out)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+	}
+	{
+		var in,out fileManipulation.Folder = "Z:\\git-projects", "X:\\2 Project Execution\\Steel Structure Calculations"
+		fmt.Println(in," --> ", out)
+		err := fileManipulation.BackUp(in, out)
+		if err != nil {
+			fmt.Println("Error:", err)
 		}
 	}
 }

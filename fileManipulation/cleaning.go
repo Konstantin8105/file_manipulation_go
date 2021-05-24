@@ -102,8 +102,8 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 			}
 
 			for _, file := range files {
-				// filter by last 24 hours files
-				if time.Since(file.ModTime()).Hours() < 24.0 {
+				// filter by last 24*3 hours files
+				if time.Since(file.ModTime()).Hours() < 24.0*3 {
 					continue
 				}
 				// filter by temp staad files

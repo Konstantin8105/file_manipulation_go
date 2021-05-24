@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"os"
 	"runtime"
+
+	"github.com/Konstantin8105/errors"
 )
 
 //BackUp - copy files from inputFolder to outputFolder
@@ -48,16 +50,17 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 	go func() {
 		defer close(inputFiles)
 		folders := getInternalDirectory(inputFolder, &errFunc)
+		et := errors.New("folder error")
 		for folder := range folders {
 			isStaadFolder, err := folder.withStaadFiles()
 			if err != nil {
-				errFunc <- err
-				return
+				et.Add(err)
+				continue
 			}
 			files, err := ioutil.ReadDir(string(folder))
 			if err != nil {
-				errFunc <- err
-				return
+				et.Add(err)
+				continue
 			}
 			f := folder
 			for _, file := range files {
@@ -67,6 +70,9 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 					}
 				}
 			}
+		}
+		if et.IsError(){
+			errFunc <- et
 		}
 	}()
 	return inputFiles, &errFunc
@@ -88,6 +94,7 @@ func copyFiles(
 
 	success := make(chan bool)
 	go func() {
+		et := errors.New("copy files")
 		for file := range files {
 
 			inFileName := fmt.Sprintf("%s\\%s", file.path, file.fileInfo.Name())
@@ -105,8 +112,8 @@ func copyFiles(
 			// create a output folder if not exist
 			err := createDirectory(outputFullFolder)
 			if err != nil {
-				*errChannel <- err
-				return
+				et.Add(err)
+				continue
 			}
 
 			// optimization of copy time:
@@ -115,17 +122,21 @@ func copyFiles(
 			var copy bool
 			copy, err = isNeedCopy(inFileName, outFileName)
 			if err != nil {
-				*errChannel <- err
-				return
+				et.Add(err)
+				continue
 			}
 
 			if copy {
 				err := CopyWithCheckingMd5(inFileName, outFileName)
 				if err != nil {
-					*errChannel <- err
-					return
+					et.Add(err)
+					continue
 				}
 			}
+		}
+		if et.IsError() {
+			*errChannel <- et
+			return
 		}
 		success <- true
 	}()
