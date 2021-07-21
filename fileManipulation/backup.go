@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/Konstantin8105/errors"
 )
@@ -64,14 +65,19 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 			}
 			f := folder
 			for _, file := range files {
-				if !file.IsDir() {
-					if (isStaadFolder && !isStaadTempFile(file.Name())) || !isStaadFolder {
-						inputFiles <- fileParam{fileInfo: file, path: f}
-					}
+				if file.IsDir() {
+					continue
 				}
+				if isStaadFolder && isStaadTempFile(file.Name()) {
+					continue
+				}
+				if ignoreFile(file.Name()) {
+					continue
+				}
+				inputFiles <- fileParam{fileInfo: file, path: f}
 			}
 		}
-		if et.IsError(){
+		if et.IsError() {
 			errFunc <- et
 		}
 	}()
@@ -174,4 +180,24 @@ func isNeedCopy(in, out string) (_ bool, err error) {
 	}
 
 	return false, nil
+}
+
+func ignoreFile(filename string) bool {
+	for _, ext := range []string{
+		".dwl",
+		".dwl2",
+		"Thumbs.db",
+	} {
+		if strings.HasSuffix(filename, ext) {
+			return true
+		}
+	}
+	for _, pre := range []string{
+		"~$",
+	} {
+		if strings.HasPrefix(filename, pre) {
+			return true
+		}
+	}
+	return false
 }
