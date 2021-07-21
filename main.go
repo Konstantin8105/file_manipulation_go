@@ -22,7 +22,7 @@ func cleaning() {
 			"C:\\TEMP",
 			"X:\\2 Project Execution\\Steel Structure Calculations",
 			"Z:\\git-projects",
-			"M:\\",
+			"Y:\\",
 		}
 		outputFolder fileManipulation.Folder = "E:\\Temp"
 	)
@@ -41,7 +41,7 @@ func cleaning() {
 
 func backup() {
 	{
-		var in,out fileManipulation.Folder = "M:\\", "Z:\\git-projects"
+		var in,out fileManipulation.Folder = "Y:\\", "Z:\\git-projects"
 		fmt.Println(in," --> ", out)
 		err := fileManipulation.BackUp(in, out)
 		if err != nil {
