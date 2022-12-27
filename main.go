@@ -22,7 +22,7 @@ func cleaning() {
 			"C:\\TEMP",
 			"X:\\2 Project Execution\\Steel Structure Calculations",
 			"Z:\\git-projects",
-			"Y:\\",
+		//	"Y:\\",
 		}
 		outputFolder fileManipulation.Folder = "E:\\Temp"
 	)
