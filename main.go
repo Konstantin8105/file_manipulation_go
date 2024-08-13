@@ -22,7 +22,7 @@ func cleaning() {
 			"C:\\TEMP",
 			"X:\\2 Project Execution\\Steel Structure Calculations",
 			"Z:\\git-projects",
-		//	"Y:\\",
+			//	"Y:\\",
 		}
 		outputFolder fileManipulation.Folder = "E:\\Temp"
 	)
@@ -43,6 +43,10 @@ func backup() {
 	for _, f := range []struct {
 		in, out fileManipulation.Folder
 	}{
+		{
+			in:  "\\\\192.168.5.195\\web",
+			out: "Z:\\git-projects\\Articles",
+		},
 		{
 			in:  "Y:\\",
 			out: "Z:\\git-projects",
