@@ -3,7 +3,7 @@ package fileManipulation
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"runtime"
 	"strings"
@@ -14,7 +14,7 @@ import (
 type Folder string
 
 type fileParam struct {
-	fileInfo os.FileInfo
+	fileInfo fs.FileInfo
 	path     Folder
 }
 
@@ -95,15 +95,20 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 	go func() {
 		defer close(tempFiles)
 		for folder := range staadFolders {
-			files, err := ioutil.ReadDir(string(folder))
+			files, err := os.ReadDir(string(folder))
 			if err != nil {
 				*errChannel <- err
 				return
 			}
 
 			for _, file := range files {
+				fi, err := file.Info()
+				if err != nil {
+					*errChannel <- err
+					continue
+				}
 				// filter by last 24*3 hours files
-				if time.Since(file.ModTime()).Hours() < 24.0*3 {
+				if time.Since(fi.ModTime()).Hours() < 24.0*3 {
 					continue
 				}
 				// filter by temp staad files
@@ -111,8 +116,8 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 					if !isStaadFile(file.Name()) {
 						if isStaadTempFile(file.Name()) {
 							folder := folder
-							tempFiles <- fileParam{fileInfo: file, path: folder}
-						} else {
+							tempFiles <- fileParam{fileInfo: fi, path: folder}
+							//} else {
 							//fmt.Println("Maybe add for delete list : ", file.Name())
 						}
 					}
@@ -147,11 +152,10 @@ func (folder Folder) withStaadFiles() (bool, error) {
 	if len(string(folder)) == 0 {
 		return false, errors.New("Null size of folder")
 	}
-	files, err := ioutil.ReadDir(string(folder))
+	files, err := os.ReadDir(string(folder))
 	if err != nil {
 		return false, err
 	}
-
 	for _, file := range files {
 		if !file.IsDir() {
 			if isStaadFile(file.Name()) {
@@ -167,7 +171,7 @@ func getInternalDirectory(folder Folder, errChannel *chan error) chan Folder {
 	go func() {
 		defer close(channel)
 		channel <- folder
-		files, err := ioutil.ReadDir(string(folder))
+		files, err := os.ReadDir(string(folder))
 		if err != nil {
 			*errChannel <- err
 		}

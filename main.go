@@ -48,6 +48,10 @@ func backup() {
 			out: "Z:\\git-projects\\Articles",
 		},
 		{
+			in:  "\\\\192.168.5.195\\web",
+			out: "O:\\Archive\\Articles",
+		},
+		{
 			in:  "Y:\\",
 			out: "Z:\\git-projects",
 		},
@@ -57,7 +61,7 @@ func backup() {
 		},
 		{
 			in:  "E:\\Outlook data",
-			out: "G:\\",
+			out: "H:\\",
 		},
 	} {
 		fmt.Println("\nBackup")

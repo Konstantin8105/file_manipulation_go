@@ -2,7 +2,6 @@ package fileManipulation
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"runtime"
@@ -11,7 +10,7 @@ import (
 	"github.com/Konstantin8105/errors"
 )
 
-//BackUp - copy files from inputFolder to outputFolder
+// BackUp - copy files from inputFolder to outputFolder
 func BackUp(inputFolder, outputFolder Folder) error {
 
 	// Check input data
@@ -55,12 +54,12 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 		for folder := range folders {
 			isStaadFolder, err := folder.withStaadFiles()
 			if err != nil {
-				et.Add(err)
+				_ = et.Add(err)
 				continue
 			}
-			files, err := ioutil.ReadDir(string(folder))
+			files, err := os.ReadDir(string(folder))
 			if err != nil {
-				et.Add(err)
+				_ = et.Add(err)
 				continue
 			}
 			f := folder
@@ -74,7 +73,12 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 				if ignoreFile(file.Name()) {
 					continue
 				}
-				inputFiles <- fileParam{fileInfo: file, path: f}
+				fi, err := file.Info()
+				if err != nil {
+					_ = et.Add(err)
+					continue
+				}
+				inputFiles <- fileParam{fileInfo: fi, path: f}
 			}
 		}
 		if et.IsError() {
@@ -118,7 +122,7 @@ func copyFiles(
 			// create a output folder if not exist
 			err := createDirectory(outputFullFolder)
 			if err != nil {
-				et.Add(err)
+				_ = et.Add(err)
 				continue
 			}
 
@@ -128,14 +132,14 @@ func copyFiles(
 			var copy bool
 			copy, err = isNeedCopy(inFileName, outFileName)
 			if err != nil {
-				et.Add(err)
+				_ = et.Add(err)
 				continue
 			}
 
 			if copy {
 				err := CopyWithCheckingMd5(inFileName, outFileName)
 				if err != nil {
-					et.Add(err)
+					_ = et.Add(err)
 					continue
 				}
 			}

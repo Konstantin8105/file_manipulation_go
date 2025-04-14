@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -143,13 +144,16 @@ func convert(file fileParam, inputFolder, outputFolder Folder) (in string, out s
 	folder = Folder(strings.Replace(string(folder), " ", "_", -1))
 
 	if len(string(inputFolder)) == len(string(file.path)) {
-		folder = Folder(fmt.Sprintf("%s", string(folder)))
+		folder = Folder(folder)
 	} else {
-		folder = Folder(fmt.Sprintf("%s\\%s", string(folder), string(file.path)[(len(inputFolder)+1):]))
+		folder = Folder(filepath.Join(string(folder), string(file.path)[(len(inputFolder)+1):]))
+		//fmt.Sprintf("%s\\%s", string(folder), string(file.path)[(len(inputFolder)+1):]))
 	}
 
-	in = fmt.Sprintf("%s\\%s", file.path, file.fileInfo.Name())
-	out = fmt.Sprintf("%s\\%s\\%s", outputFolder, folder, file.fileInfo.Name())
+	// in = fmt.Sprintf("%s\\%s", file.path, file.fileInfo.Name())
+	in = filepath.Join(string(file.path), file.fileInfo.Name())
+	// out = fmt.Sprintf("%s\\%s\\%s", outputFolder, folder, file.fileInfo.Name())
+	out = filepath.Join(string(outputFolder), string(folder), file.fileInfo.Name())
 
 	folder = Folder(fmt.Sprintf("%s\\%s", outputFolder, string(folder)))
 
