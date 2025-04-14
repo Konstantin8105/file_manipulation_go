@@ -1,17 +1,16 @@
 package fileManipulation
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
 	"runtime"
 	"strings"
-
-	"github.com/Konstantin8105/errors"
 )
 
 // BackUp - copy files from inputFolder to outputFolder
-func BackUp(inputFolder, outputFolder Folder) error {
+func BackUp(inputFolder, outputFolder Folder) (err error) {
 
 	// Check input data
 	if string(inputFolder)[len(inputFolder)-1] == '\\' {
@@ -31,35 +30,38 @@ func BackUp(inputFolder, outputFolder Folder) error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// working
-	files, errChannel := getInputFilesFlow(inputFolder)
-	defer close(*errChannel)
+	errChannel := make(chan error)
+	files := getInputFilesFlow(inputFolder, errChannel)
 	success := copyFiles(files, inputFolder, outputFolder, errChannel)
-	defer close(success)
 
-	select {
-	case <-success:
-		return nil
-	case err := <-*errChannel:
-		return err
-	}
+	end := make(chan struct{})
+	go func() {
+		for e := range errChannel {
+			err = errors.Join(err, e)
+		}
+		end <- struct{}{}
+	}()
+
+	<-success
+	close(errChannel)
+	<-end
+	return err
 }
 
-func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
+func getInputFilesFlow(inputFolder Folder, errChannel chan<- error) <-chan fileParam {
 	inputFiles := make(chan fileParam)
-	errFunc := make(chan error)
 	go func() {
 		defer close(inputFiles)
-		folders := getInternalDirectory(inputFolder, &errFunc)
-		et := errors.New("folder error")
+		folders := getInternalDirectory(inputFolder, errChannel)
 		for folder := range folders {
 			isStaadFolder, err := folder.withStaadFiles()
 			if err != nil {
-				_ = et.Add(err)
+				errChannel <- err
 				continue
 			}
 			files, err := os.ReadDir(string(folder))
 			if err != nil {
-				_ = et.Add(err)
+				errChannel <- err
 				continue
 			}
 			f := folder
@@ -75,17 +77,14 @@ func getInputFilesFlow(inputFolder Folder) (<-chan fileParam, *(chan error)) {
 				}
 				fi, err := file.Info()
 				if err != nil {
-					_ = et.Add(err)
+					errChannel <- err
 					continue
 				}
 				inputFiles <- fileParam{fileInfo: fi, path: f}
 			}
 		}
-		if et.IsError() {
-			errFunc <- et
-		}
 	}()
-	return inputFiles, &errFunc
+	return inputFiles
 }
 
 // files come with format:
@@ -100,13 +99,14 @@ func copyFiles(
 	files <-chan fileParam,
 	inputFolder Folder,
 	outputFolder Folder,
-	errChannel *(chan error)) chan bool {
+	errChannel chan<- error) chan struct{} {
 
-	success := make(chan bool)
+	success := make(chan struct{})
 	go func() {
-		et := errors.New("copy files")
+		defer func() {
+			success <- struct{}{}
+		}()
 		for file := range files {
-
 			inFileName := fmt.Sprintf("%s\\%s", file.path, file.fileInfo.Name())
 
 			var outFileName string
@@ -122,7 +122,7 @@ func copyFiles(
 			// create a output folder if not exist
 			err := createDirectory(outputFullFolder)
 			if err != nil {
-				_ = et.Add(err)
+				errChannel <- err
 				continue
 			}
 
@@ -132,23 +132,18 @@ func copyFiles(
 			var copy bool
 			copy, err = isNeedCopy(inFileName, outFileName)
 			if err != nil {
-				_ = et.Add(err)
+				errChannel <- err
 				continue
 			}
 
 			if copy {
 				err := CopyWithCheckingMd5(inFileName, outFileName)
 				if err != nil {
-					_ = et.Add(err)
+					errChannel <- err
 					continue
 				}
 			}
 		}
-		if et.IsError() {
-			*errChannel <- et
-			return
-		}
-		success <- true
 	}()
 	return success
 }

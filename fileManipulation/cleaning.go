@@ -19,7 +19,7 @@ type fileParam struct {
 }
 
 // Cleaning function for cleaning folder from temp file of STAAD
-func Cleaning(inputFolder, outputFolder Folder) error {
+func Cleaning(inputFolder, outputFolder Folder) (err error) {
 
 	// Check input data
 	if string(inputFolder)[len(inputFolder)-1] == '\\' {
@@ -43,68 +43,73 @@ func Cleaning(inputFolder, outputFolder Folder) error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// working
-	staadFolders, errChannel := getStaadFolders(inputFolder)
-	defer close(*errChannel)
+	errChannel := make(chan error)
+	staadFolders := getStaadFolders(inputFolder, errChannel)
 	tempFiles := filterTempStaadFiles(staadFolders, errChannel)
 	success := moveTempStaadFiles(tempFiles, inputFolder, outputFolder, errChannel)
-	defer close(success)
 
-	select {
-	case <-success:
-		return nil
-	case err := <-*errChannel:
-		return err
-	}
+	end := make(chan struct{})
+	go func() {
+		for e := range errChannel {
+			err = errors.Join(err, e)
+		}
+		end <- struct{}{}
+	}()
+
+	<-success
+	close(errChannel)
+	<-end
+	return err
 }
 
-func moveTempStaadFiles(tempFiles <-chan fileParam, inputFolder, outputFolder Folder, errChannel *chan error) chan bool {
-	success := make(chan bool)
+func moveTempStaadFiles(
+	tempFiles <-chan fileParam,
+	inputFolder, outputFolder Folder,
+	errChannel chan<- error,
+) chan struct{} {
+	success := make(chan struct{})
 	go func() {
+		defer func() {
+			success <- struct{}{}
+		}()
 		for tempFile := range tempFiles {
 			inputFileName, outputFileName, folder, err := convert(tempFile, inputFolder, outputFolder)
 			if err != nil {
-				*errChannel <- err
-				return
+				errChannel <- err
+				continue
 			}
-
-			err = createDirectory(folder)
-			if err != nil {
-				*errChannel <- err
-				return
+			if err = createDirectory(folder); err != nil {
+				errChannel <- err
+				continue
 			}
-
-			err = CopyWithCheckingMd5(inputFileName, outputFileName)
-			if err != nil {
-				*errChannel <- err
-				return
+			if err = CopyWithCheckingMd5(inputFileName, outputFileName); err != nil {
+				errChannel <- err
+				continue
 			}
-
-			err = removeFile(inputFileName)
-			if err != nil {
-				*errChannel <- err
-				return
+			if err = removeFile(inputFileName); err != nil {
+				errChannel <- err
+				continue
 			}
 		}
-		success <- true
 	}()
 	return success
 }
 
-func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-chan fileParam {
+func filterTempStaadFiles(staadFolders <-chan Folder, errChannel chan<- error) <-chan fileParam {
 	tempFiles := make(chan fileParam)
 	go func() {
 		defer close(tempFiles)
 		for folder := range staadFolders {
 			files, err := os.ReadDir(string(folder))
 			if err != nil {
-				*errChannel <- err
+				errChannel <- err
 				return
 			}
 
 			for _, file := range files {
 				fi, err := file.Info()
 				if err != nil {
-					*errChannel <- err
+					errChannel <- err
 					continue
 				}
 				// filter by last 24*3 hours files
@@ -128,12 +133,11 @@ func filterTempStaadFiles(staadFolders <-chan Folder, errChannel *chan error) <-
 	return tempFiles
 }
 
-func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
+func getStaadFolders(inputFolder Folder, errFunc chan<- error) <-chan Folder {
 	staadFolders := make(chan Folder)
-	errFunc := make(chan error)
 	go func() {
 		defer close(staadFolders)
-		folders := getInternalDirectory(inputFolder, &errFunc)
+		folders := getInternalDirectory(inputFolder, errFunc)
 		for folder := range folders {
 			ok, err := folder.withStaadFiles()
 			if err != nil {
@@ -145,7 +149,7 @@ func getStaadFolders(inputFolder Folder) (<-chan Folder, *(chan error)) {
 			}
 		}
 	}()
-	return staadFolders, &errFunc
+	return staadFolders
 }
 
 func (folder Folder) withStaadFiles() (bool, error) {
@@ -166,14 +170,14 @@ func (folder Folder) withStaadFiles() (bool, error) {
 	return false, nil
 }
 
-func getInternalDirectory(folder Folder, errChannel *chan error) chan Folder {
+func getInternalDirectory(folder Folder, errChannel chan<- error) chan Folder {
 	channel := make(chan Folder)
 	go func() {
 		defer close(channel)
 		channel <- folder
 		files, err := os.ReadDir(string(folder))
 		if err != nil {
-			*errChannel <- err
+			errChannel <- err
 		}
 		for _, file := range files {
 			if file.IsDir() && !isIgnoreFolder(file.Name()) {
