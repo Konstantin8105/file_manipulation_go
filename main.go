@@ -63,6 +63,10 @@ func backup() {
 			in:  "E:\\Outlook data",
 			out: "H:\\",
 		},
+		{
+			in:  "X:\\2 Project Execution\\Steel Structure Calculations\\git-projects",
+			out: "O:\\Backup\\git-projects",
+		},
 	} {
 		fmt.Println("\nBackup")
 		fmt.Println(f.in, " --> ", f.out)
