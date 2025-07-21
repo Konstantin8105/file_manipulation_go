@@ -60,6 +60,10 @@ func backup() {
 			out: "X:\\2 Project Execution\\Steel Structure Calculations",
 		},
 		{
+			in:  "Z:\\git-projects",
+			out: "O:\\Work\\git-projects",
+		},
+		{
 			in:  "E:\\Outlook data",
 			out: "H:\\",
 		},
