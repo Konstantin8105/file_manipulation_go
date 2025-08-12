@@ -1,6 +1,8 @@
 package fileManipulation
 
-import "strings"
+import (
+	"strings"
+)
 
 var extentions = []string{
 	".ANL",
@@ -98,6 +100,7 @@ func isStaadTempFile(filename string) bool {
 }
 
 func isIgnoreFolder(folderName string) bool {
+	// TODO: prepared return slices.Contains(ignoreFolderName, folderName)
 	for _, ignore := range ignoreFolderName {
 		if folderName == ignore {
 			return true
