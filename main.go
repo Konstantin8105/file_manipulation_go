@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/Konstantin8105/file_manipulation_go/fileManipulation"
@@ -11,7 +12,7 @@ func main() {
 	cleaning()
 	backup()
 	// pause //
-	fmt.Println("===\nPAUSE")
+	fmt.Fprintf(os.Stdout, "===\nPAUSE\n")
 	time.Sleep(time.Second * 8)
 }
 
@@ -28,12 +29,12 @@ func cleaning() {
 	)
 
 	for _, inputFolder := range inputFolders {
-		fmt.Println("\nCleaning")
-		fmt.Println("input  folder = ", string(inputFolder))
-		fmt.Println("output folder = ", string(outputFolder))
+		fmt.Fprintf(os.Stdout, "\nCleaning\n")
+		fmt.Fprintf(os.Stdout, "input  folder = %s\n", inputFolder)
+		fmt.Fprintf(os.Stdout, "output folder = %s\n", outputFolder)
 		err := fileManipulation.Cleaning(inputFolder, outputFolder)
 		if err != nil {
-			fmt.Println("Error:", err)
+			fmt.Fprintf(os.Stdout, "Error: %v\n", err)
 			continue
 		}
 	}
@@ -72,11 +73,11 @@ func backup() {
 			out: "O:\\Backup\\git-projects",
 		},
 	} {
-		fmt.Println("\nBackup")
-		fmt.Println(f.in, " --> ", f.out)
+		fmt.Fprintf(os.Stdout, "\nBackup\n")
+		fmt.Fprintf(os.Stdout, "%s --> %s\n", f.in, f.out)
 		err := fileManipulation.BackUp(f.in, f.out)
 		if err != nil {
-			fmt.Println("Error:", err)
+			fmt.Fprintf(os.Stdout, "Error: %v\n", err)
 		}
 	}
 }
