@@ -72,6 +72,14 @@ func backup() {
 			in:  "X:\\2 Project Execution\\Steel Structure Calculations\\git-projects",
 			out: "O:\\Backup\\git-projects",
 		},
+		{
+			in:  "V:\\Norms.for.AI",
+			out: "O:\\Norms.for.AI",
+		},
+		{
+			in:  "O:\\Norms.for.AI",
+			out: "V:\\Norms.for.AI",
+		},
 	} {
 		fmt.Fprintf(os.Stdout, "\nBackup\n")
 		fmt.Fprintf(os.Stdout, "%s --> %s\n", f.in, f.out)
